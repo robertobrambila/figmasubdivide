@@ -1,44 +1,31 @@
-//vars
-const createShapesButton = document.querySelector('#createShapes');
-const cancelButton = document.querySelector('#cancel');
-const shapeMenu = document.querySelector('#shape');
-const countInput = document.querySelector('#count');
 
-//on load function
-document.addEventListener("DOMContentLoaded", function() {
-    formValidation();
-});
-
-//initialize select menu
-selectMenu.init();
-
-//event listeners
-countInput.oninput = () => { formValidation(); }
-shapeMenu.onchange = () => { formValidation(); }
-createShapesButton.onclick = () => { createShapes(); }
-cancelButton.onclick = () => { cancel(); }
-
-//form validation
-var formValidation = function(event) {
-
-    if (shapeMenu.value === '' || countInput.value === '') {
-        createShapesButton.disabled = true;
-    } else {
-        createShapesButton.disabled = false;
+// button click
+document.getElementById('ok').onclick = () => {
+const textbox = document.getElementById('count');
+const count = parseInt(textbox.value, 10);
+    if (count <= 0 ) {
+        textbox.style.borderColor = "red";
+        //set message
+        document.getElementById('notification').innerHTML = '<div class="icon icon--warning icon--red"></div><div class="type">Value must be higher than 0.</div>';
+        // clear
+        setTimeout(function(){ 
+        document.getElementById("notification").innerHTML = "&nbsp;";
+        textbox.style.borderColor = "black";
+    }, 3500);
+    }
+    else {
+        parent.postMessage({ pluginMessage: { type: 'subdivide-path', count } }, '*')
     }
 }
 
-
-
-//functions
-function createShapes() {
-    parent.postMessage({ pluginMessage: { 
-        'type': 'create-shapes', 
-        'count': countInput.value,
-        'shape': shapeMenu.value
-    } }, '*');
-}
-
-function cancel() {
-    parent.postMessage({ pluginMessage: { 'type': 'cancel' } }, '*')
+// UI message
+onmessage = (event) => {
+    if (event.data.pluginMessage = 1001) {
+        // set message
+        document.getElementById('notification').innerHTML = '<div class="icon icon--warning icon--red"></div><div class="type">No valid path(s) selected.</div>';
+        // clear
+        setTimeout(function(){ 
+        document.getElementById("notification").innerHTML = "&nbsp;";
+    }, 3500);
+    }
 }

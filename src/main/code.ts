@@ -1,43 +1,76 @@
-// This plugin will open a modal to prompt the user to enter a number, and
-// it will then create that many of the chose shape on screen
+figma.showUI(__html__,{ width: 300, height: 150});
 
-// This shows the HTML page in "index.html".
-figma.showUI(__html__, {width: 232, height: 216 });
+interface Point {
+	x: number;
+	y: number;
+}
 
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
+function midDistances(a: Point, b: Point, count: number): Point[] {
+  var xDist = (b.x - a.x) / count;
+  var yDist = (b.y - a.y) / count;
+  var dist = Math.sqrt(xDist * xDist + yDist * yDist);
+  var newPoints = [];
+
+  for (var i=0; i<count - 1; i++) {
+	newPoints.push({
+		x: a.x + xDist * (i+1),
+		y: a.y + yDist * (i+1)
+	  });
+  }
+  return newPoints;
+}
+  
 figma.ui.onmessage = msg => {
-	// One way of distinguishing between different types of messages sent from
-	// your HTML page is to use an object with a "type" property like this.
-	if (msg.type === 'create-shapes') {
-
-		const nodes: SceneNode[] = [];
-
-		for (let i = 0; i < msg.count; i++) {
-
-			var shape;
-
-			if (msg.shape === 'rectangle') {
-				shape = figma.createRectangle();
-				console.log('hello');
-			} else if (msg.shape === 'triangle') {
-				shape = figma.createPolygon();
-			} else {
-			 shape = figma.createEllipse();
-			}
-
-			shape.x = i * 150;
-			shape.fills = [{type: 'SOLID', color: {r: 1, g: 0.5, b: 0}}];
-			figma.currentPage.appendChild(shape);
-			nodes.push(shape);
+  
+	if (msg.type === 'subdivide-path') {
+		if (figma.currentPage.selection.length <= 0) {
+			figma.ui.postMessage(1001); // send code 1001 to HTML UI
+			console.log('Please select a valid path.');
+			return
 		}
-
-		figma.currentPage.selection = nodes;
-		figma.viewport.scrollAndZoomIntoView(nodes);
+		else {
+		  for (const node of figma.currentPage.selection) {
+			const currentNode = figma.flatten([node]);
+			const segmentPoints = msg.count + 1;
+  
+			let allPoints: Point[] = [];
+  
+			currentNode.vectorNetwork.segments.forEach(segment => {
+			  const start = currentNode.vectorNetwork.vertices[segment.start];
+			  const end = currentNode.vectorNetwork.vertices[segment.end];
+			  const startPoint ={ x: start.x, y: start.y };
+			  const endPoint = { x: end.x, y: end.y };
+  
+			  allPoints.push(startPoint)
+  
+			  const midPoints = midDistances(startPoint, endPoint, segmentPoints);
+			  for (var mps = 0; mps < msg.count; mps++ ) {
+				allPoints.push(midPoints[mps]);
+			  }
+			  
+			  allPoints.push(endPoint)
+			});
+  
+			// iterate through allPoints and write out the SVG Data
+			let svg = "M "+allPoints[0].x+" "+allPoints[0].y+" "; // move to first point pos
+			for(var i=0; i<allPoints.length - 1; i++) {
+			  svg += "L "+allPoints[i+1].x+" "+allPoints[i+1].y;
+  
+			  // add trailing space if its not the last point in the array
+			  if (i != (allPoints.length - 2)) { // not including the first point pos
+				svg += " ";
+			  }
+		 	 }
+  
+		 	 const path: VectorPath = {
+				windingRule: currentNode.vectorPaths[0].windingRule,
+				data: svg
+			  }
+  
+			//  console.log(path)
+			currentNode.vectorPaths = [path];
+			figma.closePlugin();
+		  }
+		}
 	}
-
-	// Make sure to close the plugin when you're done. Otherwise the plugin will
-	// keep running, which shows the cancel button at the bottom of the screen.
-	figma.closePlugin();
-};
+}
