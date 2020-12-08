@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Subdivide Figma Plugin" src="">
+  <img alt="Subdivide Figma Plugin" src="media/subdivide_githeader.gif" height="240">
 </div>
 
 ---
