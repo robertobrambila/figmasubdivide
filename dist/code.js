@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 300, height: 150 });
+figma.showUI(__html__, { width: 300, height: 90 });
 function midDistances(a, b, count) {
     var xDist = (b.x - a.x) / count;
     var yDist = (b.y - a.y) / count;

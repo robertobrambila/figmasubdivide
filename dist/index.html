@@ -2062,15 +2062,14 @@
     </head>
     <body>
 
-    <div class="flex p-xxsmall mb-xsmall">
-        <!-- Count input -->
-        <div class="label">Points</div>
-        <div class="input input--with-icon mb-xxsmall">
+    <div class="flex p-xxsmall">
+        <!-- Point Count input -->
+        <div class="section-title">Points</div>
+        <div class="input input--with-icon">
             <div class="icon">#</div>
             <input id="count" type="input" class="input__field" value="1">
         </div>
         <button id="ok" class='button button--primary'>Ok</button> 
-        
     </div>
     <div id="notification" class="flex justify-content-center align-items-center"></div>
     
@@ -2554,13 +2553,13 @@
     const textbox = document.getElementById('count');
     const count = parseInt(textbox.value, 10);
         if (count <= 0 ) {
-            textbox.style.borderColor = "red";
+            textbox.style.borderColor = "#f24822"; // red from figma-plugin-ds css
             //set message
             document.getElementById('notification').innerHTML = '<div class="icon icon--warning icon--red"></div><div class="type">Value must be higher than 0.</div>';
             // clear
             setTimeout(function(){ 
             document.getElementById("notification").innerHTML = "&nbsp;";
-            textbox.style.borderColor = "black";
+            textbox.style.borderColor = "white";
         }, 3500);
         }
         else {
@@ -2570,7 +2569,7 @@
 
     // UI message
     onmessage = (event) => {
-        if (event.data.pluginMessage = 1001) {
+        if (event.data.pluginMessage = 1001) { // custom
             // set message
             document.getElementById('notification').innerHTML = '<div class="icon icon--warning icon--red"></div><div class="type">No valid path(s) selected.</div>';
             // clear
