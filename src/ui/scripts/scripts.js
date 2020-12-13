@@ -21,7 +21,6 @@ document.getElementById('ok').onclick = () => {
 // UI message
 onmessage = (event) => {
     if (event.data.pluginMessage['count']) { // incoming message from plugin: load stored count
-        console.log(event.data.pluginMessage['count'])
         document.getElementById('count').value = event.data.pluginMessage['count'];
     }
     else if (event.data.pluginMessage = 1001) { // incoming message from plugin: nothing selected
