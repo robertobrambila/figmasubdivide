@@ -20,7 +20,11 @@ document.getElementById('ok').onclick = () => {
 
 // UI message
 onmessage = (event) => {
-    if (event.data.pluginMessage = 1001) { // custom
+    if (event.data.pluginMessage['count']) { // incoming message from plugin: load stored count
+        console.log(event.data.pluginMessage['count'])
+        document.getElementById('count').value = event.data.pluginMessage['count'];
+    }
+    else if (event.data.pluginMessage = 1001) { // incoming message from plugin: nothing selected
         // set message
         document.getElementById('notification').innerHTML = '<div class="icon icon--warning icon--red"></div><div class="type">No valid path(s) selected.</div>';
         // clear
