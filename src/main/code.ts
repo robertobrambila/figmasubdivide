@@ -5,31 +5,38 @@ interface Point {
 	y: number;
 }
 
-// divides length of two points into # of even distances
-// returns Point array with those pairs
-function midDistances(a: Point, b: Point, count: number): Point[] {
-	var xDist = (b.x - a.x) / count;
-	var yDist = (b.y - a.y) / count;
-	var dist = Math.sqrt(xDist * xDist + yDist * yDist);
-	var newPoints = [];
-
-	for (var i = 0; i < count - 1; i++) {
-		newPoints.push({
-			x: a.x + xDist * (i + 1),
-			y: a.y + yDist * (i + 1)
-		});
+// find a point at t (0 <= t <= 1) between two given points
+function lerp(a: Point, b: Point, t: number): Point {
+	return {
+	  x: (b.x - a.x) * t + a.x,
+	  y: (b.y - a.y) * t + a.y
+	};
+  }
+  
+  // divides length of a segment (two points) into # of even distances
+  // returns Point array with those pairs
+  function divideSegment(a: Point, b: Point, c: number): Point[] {
+	const l = 1 / (c+1) // length along the segment
+	let points = [];
+  
+	for (var i = l; i < 1 ; i += l) { // incr count by length until we get to 1
+	  points.push(
+		lerp(a, b, i) // i = point in time to sample
+	  ); 
+	  
 	}
-	return newPoints;
-}
+	
+	  return points;
+  }
 
 async function loadSettings() {
 	//
-	let savedCount = await figma.clientStorage.getAsync('count');
-	if (!savedCount) {
+	let savedDivisions = await figma.clientStorage.getAsync('divisions');
+	if (!savedDivisions) {
 		console.log('Settings not saved.')
 	} else {
-		figma.ui.postMessage({count: savedCount}); // sends code 1001 to HTML UI
-		console.log("Saved Count: " + savedCount)
+		figma.ui.postMessage({divisionCount: savedDivisions}); // sends code 1001 to HTML UI
+		console.log("Saved Divisions: " + savedDivisions)
 	}
 }
 
@@ -48,8 +55,6 @@ loadSettings().then(() => {
 				for (const node of figma.currentPage.selection) {
 					const currentNode = figma.flatten([node]); // flattens the shape into a vector path so we can access vertices
 
-					const segmentPoints = msg.count + 1;
-
 					let allPoints: Point[] = [];
 
 					// loops through each individual segment in our vector path
@@ -64,8 +69,8 @@ loadSettings().then(() => {
 						allPoints.push(startPoint)
 
 						// calc new middle points & push to Point array
-						const midPoints = midDistances(startPoint, endPoint, segmentPoints);
-						for (var mps = 0; mps < msg.count; mps++) {
+						const midPoints = divideSegment(startPoint, endPoint, msg.divisionCount);
+						for (var mps = 0; mps < msg.divisionCount; mps++) {
 							allPoints.push(midPoints[mps]);
 						}
 
@@ -90,7 +95,7 @@ loadSettings().then(() => {
 					currentNode.vectorPaths = [path];
 
 					// save count to local settings
-					await figma.clientStorage.setAsync('count', msg.count);
+					await figma.clientStorage.setAsync('divisions', msg.divisionCount);
 
 					// bye, bye
 					figma.closePlugin();

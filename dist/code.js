@@ -8,31 +8,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 figma.showUI(__html__, { width: 300, height: 90 });
-// divides length of two points into # of even distances
+// find a point at t (0 <= t <= 1) between two given points
+function lerp(a, b, t) {
+    return {
+        x: (b.x - a.x) * t + a.x,
+        y: (b.y - a.y) * t + a.y
+    };
+}
+// divides length of a segment (two points) into # of even distances
 // returns Point array with those pairs
-function midDistances(a, b, count) {
-    var xDist = (b.x - a.x) / count;
-    var yDist = (b.y - a.y) / count;
-    var dist = Math.sqrt(xDist * xDist + yDist * yDist);
-    var newPoints = [];
-    for (var i = 0; i < count - 1; i++) {
-        newPoints.push({
-            x: a.x + xDist * (i + 1),
-            y: a.y + yDist * (i + 1)
-        });
+function divideSegment(a, b, c) {
+    const l = 1 / (c + 1); // length along the segment
+    let points = [];
+    for (var i = l; i < 1; i += l) { // incr count by length until we get to 1
+        points.push(lerp(a, b, i) // i = point in time to sample
+        );
     }
-    return newPoints;
+    return points;
 }
 function loadSettings() {
     return __awaiter(this, void 0, void 0, function* () {
         //
-        let savedCount = yield figma.clientStorage.getAsync('count');
-        if (!savedCount) {
+        let savedDivisions = yield figma.clientStorage.getAsync('divisions');
+        if (!savedDivisions) {
             console.log('Settings not saved.');
         }
         else {
-            figma.ui.postMessage({ count: savedCount }); // sends code 1001 to HTML UI
-            console.log("Saved Count: " + savedCount);
+            figma.ui.postMessage({ divisionCount: savedDivisions }); // sends code 1001 to HTML UI
+            console.log("Saved Divisions: " + savedDivisions);
         }
     });
 }
@@ -48,7 +51,6 @@ loadSettings().then(() => {
                 // loops through individual selection elements
                 for (const node of figma.currentPage.selection) {
                     const currentNode = figma.flatten([node]); // flattens the shape into a vector path so we can access vertices
-                    const segmentPoints = msg.count + 1;
                     let allPoints = [];
                     // loops through each individual segment in our vector path
                     currentNode.vectorNetwork.segments.forEach(segment => {
@@ -60,8 +62,8 @@ loadSettings().then(() => {
                         // push first point to new Point array
                         allPoints.push(startPoint);
                         // calc new middle points & push to Point array
-                        const midPoints = midDistances(startPoint, endPoint, segmentPoints);
-                        for (var mps = 0; mps < msg.count; mps++) {
+                        const midPoints = divideSegment(startPoint, endPoint, msg.divisionCount);
+                        for (var mps = 0; mps < msg.divisionCount; mps++) {
                             allPoints.push(midPoints[mps]);
                         }
                         // push last point in segment to Point Array
@@ -80,7 +82,7 @@ loadSettings().then(() => {
                     // sets new path data to our selected node
                     currentNode.vectorPaths = [path];
                     // save count to local settings
-                    yield figma.clientStorage.setAsync('count', msg.count);
+                    yield figma.clientStorage.setAsync('divisions', msg.divisionCount);
                     // bye, bye
                     figma.closePlugin();
                 }
