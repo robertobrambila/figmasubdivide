@@ -22,7 +22,6 @@ You can now use the plugin by Right-Clicking the canvas and choosing Plugins -> 
 
 ## Known Limitations / Roadmap
 - **Curves!** Does not currently support bezier paths / curves. It will evenly subdivide your path but the output will be connected by straight lines. It's an aesthetic 😂
-- **Spacing!** Does not currently support custom spacing. It'd be ideal to allow for spacing as a % along the segment per individual point.
 - If your path contains a straight segment with multiple points along it **and** your chosen point count is less than the amount of those currently existing, it will actually reduce (or simplify) the path down to your chosen point count.
 
 ## Local Development
